@@ -1,0 +1,6 @@
+- name: start Flask server
+  script: /vagrant/src/api.py
+  args:
+    executable: "{{ python_exec }}"
+  vars:
+    python_exec: /usr/bin/python3

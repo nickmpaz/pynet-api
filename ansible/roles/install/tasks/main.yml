@@ -5,5 +5,14 @@
   vars:
     packages:
     - vim
-    - git
-    - screen
+    - python3
+    - python3-pip
+
+- name: pip install
+  pip:
+    requirements: "{{ requirements_loc }}"
+    executable: "{{ pip_exec }}"
+  vars: 
+    requirements_loc: /vagrant/src/requirements.txt
+    pip_exec: /usr/bin/pip3
+
