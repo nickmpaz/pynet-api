@@ -1,0 +1,26 @@
+- name: restart
+  service:
+    name: mysql
+    state: restarted
+
+- name: create user
+  mysql_user:
+    login_user: root
+    login_password: 
+    name: pynet
+    password: pynet
+    priv: '*.*:ALL'
+    state: present
+
+# - name: create database
+#   mysql_db:
+#     login_user: pynet
+#     login_password: pynet
+#     name: pynet_db
+#     state: present
+
+- name: create database and table
+  mysql_db:
+    state: import
+    name: all
+    target: /vagrant/config/config.sql

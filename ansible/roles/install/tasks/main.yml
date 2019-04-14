@@ -1,4 +1,4 @@
-- name: install package(s)
+- name: apt install
   apt:
     name: "{{ packages }}"
     state: latest
@@ -7,6 +7,13 @@
     - vim
     - python3
     - python3-pip
+    - python-mysqldb
+    - mysql-server
+#    - build-essential
+ #   - python-dev
+    - uwsgi-plugin-python3
+    - uwsgi
+    - nginx
 
 - name: pip install
   pip:

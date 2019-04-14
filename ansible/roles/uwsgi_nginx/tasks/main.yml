@@ -1,0 +1,42 @@
+# start uwsgi server - port: 5001
+
+# copy uwsgi ini file to /etc/uwsgi/sites-...
+# sudo service uwsgi restart?
+# sudo uwsgi --ini /vagrant/config/pynet_uwsgi.ini
+
+
+# set up nginx reverse proxy - port: 5000 <- 5001
+# sudo rm /etc/nginx/sites-enabled/default
+# sudo ln -s /vagrant/config/pynet_nginx.conf /etc/nginx/sites-enabled/
+# sudo service nginx restart
+- name: nginx - remove default site
+  file: 
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: nginx - enable pynet
+  file:
+    src: /vagrant/config/pynet_nginx.conf
+    dest: /etc/nginx/sites-enabled/pynet_nginx.conf
+    state: link
+
+- name: nginx - restart
+  service:
+    name: nginx
+    state: restarted
+
+- name: uwsgi - make pynet available
+  copy:
+    src: /vagrant/config/pynet_uwsgi.ini
+    dest: /etc/uwsgi/apps-available/pynet_uwsgi.ini
+
+- name: uwsgi - enable pynet
+  file:
+    src: /etc/uwsgi/apps-available/pynet_uwsgi.ini
+    dest: /etc/uwsgi/apps-enabled/pynet_uwsgi.ini
+    state: link
+
+- name: uwsgi - restart
+  service:
+    name: uwsgi
+    state: restarted

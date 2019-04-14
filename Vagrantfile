@@ -4,7 +4,7 @@
 $vagrant_box = "ubuntu/trusty64"
 $guest_port = 5000
 $host_port = 5000
-$ansible_verbose = true
+$ansible_verbose = false
 
 # ======= #
 

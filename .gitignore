@@ -1,2 +1,10 @@
+# ./
 .vagrant/
+
+# ./ansible
 ansible/provision.retry
+
+# ./config
+
+# ./src
+src/__pycache__/*
