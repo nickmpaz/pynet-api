@@ -12,13 +12,6 @@
     priv: '*.*:ALL'
     state: present
 
-# - name: create database
-#   mysql_db:
-#     login_user: pynet
-#     login_password: pynet
-#     name: pynet_db
-#     state: present
-
 - name: create database and table
   mysql_db:
     state: import

@@ -9,6 +9,7 @@
 # sudo rm /etc/nginx/sites-enabled/default
 # sudo ln -s /vagrant/config/pynet_nginx.conf /etc/nginx/sites-enabled/
 # sudo service nginx restart
+
 - name: nginx - remove default site
   file: 
     path: /etc/nginx/sites-enabled/default

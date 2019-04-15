@@ -5,43 +5,68 @@ from flask import Flask, request
 app = Flask(__name__)
 
 NUM_CHANNELS = 4
+FILL_VALUE = 9999.0
 MYSQL_HOST = "localhost"
 MYSQL_USER = "pynet"
 MYSQL_PASS = "pynet"
 MYSQL_DB = "pynet_db"
  
-@app.route("/<int:device_id>")
+@app.route("/<int:device_id>", methods=['GET', 'POST'])
 def store(device_id):
-    
-    # read in query parameters
-    chan_data = []
-    for i in range (NUM_CHANNELS):
-        chan_data.append(request.args.get(str(i), type=float))
 
-    # connect to database
-    db = pymysql.connect(MYSQL_HOST, MYSQL_USER, MYSQL_PASS, MYSQL_DB)
-    cursor = db.cursor()
+    if request.method == 'POST':
 
-    # create insertion statement
-    sql_insert = "INSERT INTO device_data(device_id, \
-    time_stamp, chan_0, chan_1, chan_2, chan_3) \
-    VALUES ('%d', '%d', '%f', '%f', '%f', '%f' )" % \
-    (device_id, int(time.time()), chan_data[0], chan_data[1], chan_data[2], chan_data[3])
+        # read in query parameters
+        chan_data = []
+        for i in range (NUM_CHANNELS):
+            chan_data.append(request.args.get(str(i), FILL_VALUE, type=float))
 
-    try:
-        cursor.execute(sql_insert)
-        db.commit()
-        return_message = "1"
-    except:
-        db.rollback()
-        return_message = "0"
+        # connect to database
+        db = pymysql.connect(MYSQL_HOST, MYSQL_USER, MYSQL_PASS, MYSQL_DB)
+        cursor = db.cursor()
 
-    # disconnect from server
-    db.close()
-    return return_message
+        # create insertion statement
+        sql_insert = "INSERT INTO device_data(device_id, \
+        time_stamp, chan_0, chan_1, chan_2, chan_3) \
+        VALUES ('%d', '%d', '%f', '%f', '%f', '%f' )" % \
+        (device_id, int(time.time()), chan_data[0], chan_data[1], chan_data[2], chan_data[3])
 
+        # insert data
+        try:
+            cursor.execute(sql_insert)
+            db.commit()
+            return_message = "1"
+        except:
+            db.rollback()
+            return_message = "0"
 
+        # disconnect from server
+        db.close()
 
+        return return_message
+
+    else:
+
+        # connect to database
+        db = pymysql.connect(MYSQL_HOST, MYSQL_USER, MYSQL_PASS, MYSQL_DB)
+        cursor = db.cursor()
+
+        sql_select = "SELECT * FROM device_data WHERE device_id = " + str(device_id)
+
+        try:
+            cursor.execute(sql_select)
+            results = cursor.fetchall()
+            return_message = ""
+            for row in results:
+                return_message = return_message +  '   '.join([str(elem) for elem in row]) + "\n"
+
+        except:
+            return_message = "something went wrong."
+        
+        return return_message
+            
+
+            
 @app.route("/")
 def test1():
     return "it works."
