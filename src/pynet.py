@@ -31,10 +31,10 @@ def store(device_id):
     try:
         cursor.execute(sql_insert)
         db.commit()
-        return_message = "inserted ;)"
+        return_message = "1"
     except:
         db.rollback()
-        return_message = "didn't insert :("
+        return_message = "0"
 
     # disconnect from server
     db.close()
@@ -44,20 +44,7 @@ def store(device_id):
 
 @app.route("/")
 def test1():
-    db = pymysql.connect(MYSQL_HOST, MYSQL_USER, MYSQL_PASS, MYSQL_DB)
-
-    # prepare a cursor object using cursor() method
-    cursor = db.cursor()
-
-    # execute SQL query using execute() method.
-    cursor.execute("SELECT VERSION()")
-
-    # Fetch a single row using fetchone() method.
-    data = cursor.fetchone()
-
-    # disconnect from server
-    db.close()
-    return "did it ;)"
+    return "it works."
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)
