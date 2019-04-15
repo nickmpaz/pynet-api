@@ -9,8 +9,6 @@
     - python3-pip
     - python-mysqldb
     - mysql-server
-#    - build-essential
- #   - python-dev
     - uwsgi-plugin-python3
     - uwsgi
     - nginx
