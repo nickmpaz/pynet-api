@@ -8,3 +8,4 @@ ansible/provision.retry
 
 # ./src
 src/__pycache__/*
+.vscode/*

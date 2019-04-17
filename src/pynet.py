@@ -24,8 +24,14 @@ def device(device_id):
         sql_insert = "INSERT INTO device_data(device_id, \
         time_stamp, chan_0, chan_1, chan_2, chan_3) \
         VALUES ('%d', '%d', '%f', '%f', '%f', '%f' )" % \
-        (device_id, int(time.time()), float(request.form['ch0']), 
-        float(request.form['ch1']), float(request.form['ch2']), float(request.form['ch3']))
+        (
+            device_id, 
+            int(time.time()), 
+            float(request.form['ch0']), 
+            float(request.form['ch1']), 
+            float(request.form['ch2']), 
+            float(request.form['ch3'])
+        )
 
         # insert data
         try:
