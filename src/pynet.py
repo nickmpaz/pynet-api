@@ -12,7 +12,7 @@ MYSQL_PASS = "pynet"
 MYSQL_DB = "pynet_db"
  
 @app.route("/<int:device_id>", methods=['GET', 'POST'])
-def store(device_id):
+def device(device_id):
 
     if request.method == 'POST':
 
@@ -61,15 +61,30 @@ def store(device_id):
                 return_message = return_message +  '   '.join([str(elem) for elem in row]) + "\n"
 
         except:
-            return_message = "something went wrong."
+            return_message = "Error"
         
         return return_message
             
 
-            
+# this is mostly for dev purposes (see if there's anything in there.)            
 @app.route("/")
-def test1():
-    return "it works."
+def dataNum():
+    db = pymysql.connect(MYSQL_HOST, MYSQL_USER, MYSQL_PASS, MYSQL_DB)
+    cursor = db.cursor()
+
+    sql_select = "SELECT COUNT(*) FROM device_data"
+
+    try:
+        cursor.execute(sql_select)
+        results = cursor.fetchall()
+        return_message = "rows in device_data: "
+        for row in results:
+            return_message = return_message +  '   '.join([str(elem) for elem in row]) + "\n"
+
+    except:
+        return_message = "Error"
+        
+    return return_message
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)
