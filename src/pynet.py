@@ -18,6 +18,8 @@ MYSQL_USER = "pynet"
 MYSQL_PASS = "pynet"
 MYSQL_DB = "pynet_db"
 
+# =============================================================================================================================================================
+
 # METHOD    ENDPOINT            DESCRIPTION                                                 RETURN 
 
 # GET       /data/1234          get all data tied to device                                 list of lists of data rows (sorted by time) [200] or [404]-device doesnt exist
@@ -29,26 +31,61 @@ MYSQL_DB = "pynet_db"
 # GET       /devices/1234       get device config                                           list of config items [200] or [404]-device doesnt exist
 # POST      /devices/1234       change device config - form: device config                  [201] or [400]-bad data
 
+# =============================================================================================================================================================
+
+# this is mostly for dev purposes (see if there's anything in there.)            
+@app.route("/")
+def test_connection():
+    return "[Pynet] - Connection Successful"
+
+@app.route("/clear")
+def clear_database():
+    try:
+        # connect to database
+        db = pymysql.connect(MYSQL_HOST, MYSQL_USER, MYSQL_PASS, MYSQL_DB)
+        cursor = db.cursor()
+    except:
+        abort(SERVER_ERROR)
+
+    try:
+        sql_delete = "DELETE FROM devices"
+        cursor.execute(sql_delete)
+        db.commit()
+        sql_delete = "DELETE FROM device_data"
+        cursor.execute(sql_delete)
+        db.commit()
+    except:
+        db.rollback()
+        abort(SERVER_ERROR)
+
+    # disconnect from server
+    db.close()
+
+    return make_response('',OK)
+
+
+    
+
 @app.route("/devices", methods=['GET', 'POST'])
 def device():
 
     if request.method == 'POST':
         
-        # connect to database
         try:
+            # connect to database
             db = pymysql.connect(MYSQL_HOST, MYSQL_USER, MYSQL_PASS, MYSQL_DB)
             cursor = db.cursor()
         except:
             abort(SERVER_ERROR)
 
-        #check if device is already in database
         try:
-            is_in_database(int(request.form['device_id']), cursor)
+            #check if device is already in database
+            not_in_database(int(request.form['device_id']), cursor)
         except:
             abort(BAD_REQUEST)
 
-        # create insertion statement
         try:
+            # create insertion statement
             sql_insert = "INSERT INTO devices(device_id, frequency) \
             VALUES ('%d', '%d')" % \
             (
@@ -58,8 +95,8 @@ def device():
         except:
             abort(BAD_REQUEST)
 
-        # insert data
         try:
+            # insert data
             cursor.execute(sql_insert)
             db.commit()
 
@@ -84,7 +121,7 @@ def device():
 
         try:
             # get all devices
-            sql_select = "SELECT * FROM devices" 
+            sql_select = "SELECT * FROM devices ORDER BY device_id" 
             cursor.execute(sql_select)
             results = cursor.fetchall()
             return_message = {}
@@ -97,30 +134,95 @@ def device():
 
         return make_response(jsonify(return_message),OK)
 
+@app.route("/devices/<int:device_id>", methods=['GET', 'POST'])
+def config(device_id):
+
+    if request.method == 'POST':
+
+        try:
+            # connect to database
+            db = pymysql.connect(MYSQL_HOST, MYSQL_USER, MYSQL_PASS, MYSQL_DB)
+            cursor = db.cursor()
+        
+        except:
+            abort(SERVER_ERROR)
+        
+        try:
+            #check if device is in database
+            is_in_database(device_id, cursor)
+        except:
+            abort(NOT_FOUND)
+
+        return make_response('',OK)
+
+    else:
+
+        try:
+            # connect to database
+            db = pymysql.connect(MYSQL_HOST, MYSQL_USER, MYSQL_PASS, MYSQL_DB)
+            cursor = db.cursor()
+        
+        except:
+            abort(SERVER_ERROR)
+        
+        try:
+            #check if device is in database
+            is_in_database(device_id, cursor)
+        except:
+            abort(NOT_FOUND)
+
+        try:
+            # get all device's data
+            sql_select = "SELECT * FROM devices WHERE device_id = " + str(device_id)
+            cursor.execute(sql_select)
+            result = cursor.fetchone()
+            return_message = {}
+            return_message['response'] = result
+
+        except:
+            #should never reach this code
+            abort(SERVER_ERROR)
+
+        #return jsonify(return_message), OK
+        return make_response(jsonify(return_message), OK)
+
 @app.route("/data/<int:device_id>", methods=['GET', 'POST'])
 def data(device_id):
 
     if request.method == 'POST':
 
-        # connect to database
-        db = pymysql.connect(MYSQL_HOST, MYSQL_USER, MYSQL_PASS, MYSQL_DB)
-        cursor = db.cursor()
-
-        # create insertion statement
-        sql_insert = "INSERT INTO device_data(device_id, \
-        time_stamp, chan_0, chan_1, chan_2, chan_3) \
-        VALUES ('%d', '%d', '%f', '%f', '%f', '%f' )" % \
-        (
-            device_id, 
-            int(time.time()), 
-            float(request.form['ch0']), 
-            float(request.form['ch1']), 
-            float(request.form['ch2']), 
-            float(request.form['ch3'])
-        )
-
-        # insert data or except
         try:
+            # connect to database
+            db = pymysql.connect(MYSQL_HOST, MYSQL_USER, MYSQL_PASS, MYSQL_DB)
+            cursor = db.cursor()
+        
+        except:
+            abort(SERVER_ERROR)
+        
+        try:
+            #check if device is in database
+            is_in_database(device_id, cursor)
+        except:
+            abort(NOT_FOUND)
+
+        try:
+            # create insertion statement
+            sql_insert = "INSERT INTO device_data(device_id, \
+            time_stamp, chan_0, chan_1, chan_2, chan_3) \
+            VALUES ('%d', '%d', '%f', '%f', '%f', '%f' )" % \
+            (
+                device_id, 
+                int(time.time()), 
+                float(request.form['ch0']), 
+                float(request.form['ch1']), 
+                float(request.form['ch2']), 
+                float(request.form['ch3'])
+            )
+        except:
+            abort(BAD_REQUEST)
+
+        try:
+            # insert data or except
             cursor.execute(sql_insert)
             db.commit()
 
@@ -131,29 +233,28 @@ def data(device_id):
         # disconnect from server
         db.close()
 
-        return CREATED
+        return make_response('', CREATED)
 
-    #FIXME maybe this should return data in order by time... change the sql stuff
     else:
 
-        # connect to database
-        db = pymysql.connect(MYSQL_HOST, MYSQL_USER, MYSQL_PASS, MYSQL_DB)
-        cursor = db.cursor()
-
-        #check if device is in database
-        sql_select = "SELECT * FROM devices WHERE device_id = " + str(device_id)
         try:
-            cursor.execute(sql_select)
-            row_count = cursor.rowcount
-            if row_count == 0:
-                abort(NOT_FOUND)
-
+            # connect to database
+            db = pymysql.connect(MYSQL_HOST, MYSQL_USER, MYSQL_PASS, MYSQL_DB)
+            cursor = db.cursor()
+        
         except:
-            abort(BAD_REQUEST)
+            abort(SERVER_ERROR)
 
-        # get all device's data
-        sql_select = "SELECT * FROM device_data WHERE device_id = " + str(device_id) + " ORDER BY time_stamp" 
         try:
+            #check if device is not in database
+            is_in_database(device_id, cursor)
+        except:
+            abort(NOT_FOUND)
+
+        
+        try:
+            # get all device's data
+            sql_select = "SELECT * FROM device_data WHERE device_id = " + str(device_id) + " ORDER BY time_stamp" 
             cursor.execute(sql_select)
             results = cursor.fetchall()
             return_message = {}
@@ -163,40 +264,26 @@ def data(device_id):
 
         except:
             #should never reach this code
-            pass
+            abort(SERVER_ERROR)
 
         #return jsonify(return_message), OK
-        return jsonify(return_message)
-            
+        return make_response(jsonify(return_message), OK)
 
-# this is mostly for dev purposes (see if there's anything in there.)            
-@app.route("/")
-def dataNum():
-    db = pymysql.connect(MYSQL_HOST, MYSQL_USER, MYSQL_PASS, MYSQL_DB)
-    cursor = db.cursor()
-
-    sql_select = "SELECT COUNT(*) FROM device_data"
-
-    try:
-        cursor.execute(sql_select)
-        results = cursor.fetchall()
-        return_message = "rows in device_data: "
-        for row in results:
-            return_message = return_message +  '   '.join([str(elem) for elem in row]) + "\n"
-
-    except:
-        return_message = "Error"
-        
-    return return_message
-
+# raise exception if device_id does not exist
 def is_in_database(device_id, cursor):
-    # get all devices
-    sql_select = "SELECT * FROM devices" 
+    sql_select = "SELECT * FROM devices WHERE device_id = " + str(device_id) 
     cursor.execute(sql_select)
-    results = cursor.fetchall()
-    for row in results:
-        if row[0] == device_id:
-            raise Exception()
+    row_count = cursor.rowcount
+    if row_count == 0:
+        raise Exception()
+
+# raise exception if device_id does exist 
+def not_in_database(device_id, cursor):
+    sql_select = "SELECT * FROM devices WHERE device_id = " + str(device_id) 
+    cursor.execute(sql_select)
+    row_count = cursor.rowcount
+    if row_count != 0:
+        raise Exception()
 
 
 if __name__ == '__main__':
