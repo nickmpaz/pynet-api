@@ -1,5 +1,11 @@
 CREATE DATABASE IF NOT EXISTS pynet_db;
 USE pynet_db;
+
+CREATE TABLE IF NOT EXISTS devices (
+    device_id INT NOT NULL,
+    frequency INT NOT NULL
+)  ENGINE=INNODB;
+
 CREATE TABLE IF NOT EXISTS device_data (
     device_id INT NOT NULL,
     time_stamp INT NOT NULL,
