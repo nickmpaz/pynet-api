@@ -63,9 +63,6 @@ def clear_database():
 
     return make_response('',OK)
 
-
-    
-
 @app.route("/devices", methods=['GET', 'POST'])
 def device():
 
@@ -132,6 +129,9 @@ def device():
         except:
             abort(SERVER_ERROR)
 
+        # disconnect from server
+        db.close()
+
         return make_response(jsonify(return_message),OK)
 
 @app.route("/devices/<int:device_id>", methods=['GET', 'POST'])
@@ -152,6 +152,19 @@ def config(device_id):
             is_in_database(device_id, cursor)
         except:
             abort(NOT_FOUND)
+
+        try:
+            #update device row
+            sql_update = "UPDATE devices SET frequency = %d WHERE device_id = %d" % \
+            (int(request.form['frequency']), device_id)
+            cursor.execute(sql_update)
+            db.commit()
+        except:
+            abort(SERVER_ERROR)
+            db.rollback()
+
+        # disconnect from server
+        db.close()
 
         return make_response('',OK)
 
@@ -182,6 +195,9 @@ def config(device_id):
         except:
             #should never reach this code
             abort(SERVER_ERROR)
+
+        # disconnect from server
+        db.close()
 
         #return jsonify(return_message), OK
         return make_response(jsonify(return_message), OK)
@@ -266,6 +282,9 @@ def data(device_id):
             #should never reach this code
             abort(SERVER_ERROR)
 
+        # disconnect from server
+        db.close()
+
         #return jsonify(return_message), OK
         return make_response(jsonify(return_message), OK)
 
@@ -284,7 +303,6 @@ def not_in_database(device_id, cursor):
     row_count = cursor.rowcount
     if row_count != 0:
         raise Exception()
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)
