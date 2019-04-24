@@ -5,6 +5,7 @@
 ansible/provision.retry
 
 # ./config
+config/backup.sql.bz2
 
 # ./src
 src/__pycache__/*

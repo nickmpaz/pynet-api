@@ -22,6 +22,8 @@ MYSQL_DB = "pynet_db"
 
 # METHOD    ENDPOINT            DESCRIPTION                                                 RETURN 
 
+# GET       /                   test connection                                             200
+#
 # GET       /data/1234          get all data tied to device                                 list of lists of data rows (sorted by time) [200] or [404]-device doesnt exist
 # POST      /data/1234          create data point for device - form: data point             [201] or [400]-bad data
 #
@@ -32,8 +34,7 @@ MYSQL_DB = "pynet_db"
 # POST      /devices/1234       change device config - form: device config                  [201] or [400]-bad data
 
 # =============================================================================================================================================================
-
-# this is mostly for dev purposes (see if there's anything in there.)            
+           
 @app.route("/")
 def test_connection():
     return "[Pynet] - Connection Successful"

@@ -3,5 +3,4 @@
   gather_facts: yes
   become: true
   roles:
-    - install
-    - setup
+    - shutdown

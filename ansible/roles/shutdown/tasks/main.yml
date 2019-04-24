@@ -1,0 +1,5 @@
+- name: dump databases
+  mysql_db:
+    state: dump
+    name: all
+    target: /vagrant/config/backup.sql.bz2
