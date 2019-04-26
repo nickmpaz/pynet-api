@@ -1,12 +1,13 @@
 # ./
-.vagrant/
+.vagrant/*
+.vscode/*
 
 # ./ansible
 ansible/provision.retry
+ansible/pi-provision.retry
 
 # ./config
 config/backup.sql.bz2
 
 # ./src
 src/__pycache__/*
-.vscode/*
